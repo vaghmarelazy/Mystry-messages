@@ -5,57 +5,33 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Message, User } from "@/model/User";
+import { Message } from "@/model/User";
 import { AcceptMessageSchema } from "@/schemas/acceptMessageSchema";
 import { ApiResponse } from "@/types/ApiResponse";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
+  const [ProfileURL, setProfileURL] = useState("");
+  const [username, setUsername] = useState("");
+  // const [isAcceptingMessages, setIsAcceptingMessages] = useState(false);
   const { toast } = useToast();
   const { data: session, status } = useSession({
     required: true,
   });
-
-  // console.log(status);
-
-  const form = useForm<typeof AcceptMessageSchema>({
+  const form = useForm({
     resolver: zodResolver(AcceptMessageSchema),
   });
-  const { register, watch, setValue } = form;
+  const { watch, setValue } = form;
   const acceptMessages = watch("acceptMessages");
-
-  const handleDeleteMessage = useCallback((messageId: string) => {
-    setMessages((prevMessages) =>
-      prevMessages.filter((message) => message._id !== messageId)
-    );
-  }, []);
-
-  const fetchAcceptMessage = useCallback(async () => {
-    setIsSwitchLoading(true);
-    try {
-      const response = await axios.get<ApiResponse>(`/api/accept-messages`);
-      setValue("acceptMessages", response.data.isAcceptingMessages);
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
-      console.error(error);
-      toast({
-        title: "Error",
-        description:
-          axiosError.response?.data.message || "Error fetching messages",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSwitchLoading(false);
-    }
-  }, [setValue, toast]);
+  // console.log("acceptMessages while fecthed", acceptMessages);
 
   const handleError = useCallback(
     (error: unknown) => {
@@ -73,14 +49,89 @@ function Page() {
     [toast]
   );
 
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+       const response = await axios.delete<ApiResponse>(`/api/delete-message/${messageId}`);
+       console.log(response.data)
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message._id !== messageId)
+      );
+      toast({
+        title: "Message Deleted",
+        description: "The message has been successfully deleted.",
+        variant: "default",
+      });
+    } catch (error) {
+      handleError(error);
+    }
+  }, [handleError, toast]);
+
+  const fetchAcceptMessage = useCallback(async () => {
+    setIsSwitchLoading(true);
+    try {
+      const response = await axios.get<ApiResponse>(`/api/accept-messages`);
+      // const result: boolean = response.data.isAcceptingMessages
+      // console.log("Fecthing acceptMessages", response.data);
+      setValue("acceptMessages", response.data.isAcceptingMessages);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSwitchLoading(false);
+    }
+  }, [setValue, handleError]);
+
+  // const fetchMessages = useCallback(
+  //   async (refresh: boolean = false) => {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await axios.get<ApiResponse>(`/api/get-messages`);
+
+  //       const messages = [];
+  //       response.data.messages.forEach((message) => {
+  //         messages.push(message.content);
+  //       });
+
+  //       console.log(messages);
+
+  //       // Log each message object properly
+  //       // fetchedMessages.forEach((message) => {
+  //       //   console.log("Message:", message);
+  //       // });
+
+  //       // Set messages correctly
+  //       setMessages(messages);
+  //       if (refresh) {
+  //         toast({
+  //           title: "Messages refreshed",
+  //           description: "Messages fetched successfully",
+  //         });
+  //       }
+  //     } catch (error) {
+  //       handleError(error);
+  //       console.log("Gettings error in getMessages", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   },
+  //   [toast, handleError]
+  // );
+
   const fetchMessages = useCallback(
     async (refresh: boolean = false) => {
       setIsLoading(true);
       try {
         const response = await axios.get<ApiResponse>(`/api/get-messages`);
-        // console.log("getting msgs", response.data.messages)
-        // console.log("getting msg", response.data.message)
-        setMessages(response.data.messages || []);
+
+        // Ensure messages are properly set as an array of objects
+        const fetchedMessages: Message[] = response.data.messages || [];
+
+        console.log("Fetched messages:", fetchedMessages.forEach((messages)=>{
+          console.log(messages.content)
+        }));
+
+        // Set messages correctly
+        setMessages(fetchedMessages);
+
         if (refresh) {
           toast({
             title: "Messages refreshed",
@@ -89,7 +140,7 @@ function Page() {
         }
       } catch (error) {
         handleError(error);
-        console.log("Gettings error in getMessages", error);
+        console.log("Getting error in getMessages", error);
       } finally {
         setIsLoading(false);
       }
@@ -99,9 +150,12 @@ function Page() {
 
   useEffect(() => {
     if (!session || !session.user) return;
+    setUsername(String(session?.user.username));
+    // setIsAcceptingMessages(Boolean(session.user.isAcceptingMessage));
+    setProfileURL(`${window.location.origin}/u/${username}`);
     fetchMessages();
     fetchAcceptMessage();
-  }, [session, setValue, fetchAcceptMessage, fetchMessages]);
+  }, [session, setValue, fetchAcceptMessage, fetchMessages, username]);
 
   if (status === "loading") {
     return (
@@ -120,6 +174,7 @@ function Page() {
   //handle switch change
   const handleSwitchChange = async () => {
     try {
+      // const newValue = !acceptMessages;
       const response = await axios.post<ApiResponse>("/api/accept-messages", {
         acceptMessages: !acceptMessages,
       });
@@ -141,25 +196,12 @@ function Page() {
       });
     }
   };
-
-  const { username } = session?.user as User;
-
-  const profileUrl = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return `${window.location.origin}/u/${username}`;
-    }
-    return ""; // Provide a fallback for SSR
-  }, [username]);
-
   const copyToClipboard = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(profileUrl);
-      toast({
-        title: "Link Copied",
-        description:
-          "Your unique profile link has been copied to your clipboard",
-      });
-    }
+    navigator.clipboard.writeText(ProfileURL);
+    toast({
+      title: "Link Copied",
+      description: "Your unique profile link has been copied to your clipboard",
+    });
   };
 
   return (
@@ -171,7 +213,7 @@ function Page() {
         <div className="flex items-center">
           <input
             type="text"
-            value={profileUrl}
+            value={ProfileURL}
             disabled
             className="input input-bordered w-full p-2 mr-2"
           />
@@ -208,9 +250,9 @@ function Page() {
       </Button>
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {messages.length > 0 ? (
-          messages.map((message: Message, index) => (
+          messages.map((message: Message) => (
             <MessageCard
-              key={message._id}
+              key={String(message._id)}
               message={message}
               onMessageDelete={handleDeleteMessage}
             />

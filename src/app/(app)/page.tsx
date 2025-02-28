@@ -1,22 +1,28 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
-import { Mail } from 'lucide-react'
-import React from 'react'
-import messages from '@/messages.json'
-import Autoplay from 'embla-carousel-autoplay'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import { Mail } from "lucide-react";
+import React from "react";
+import messages from "@/messages.json";
+import Autoplay from "embla-carousel-autoplay";
+import Navbar from "@/components/Navbar";
 
 const page = () => {
   return (
-    <>
+    <div className="min-h-full">
       {/* Main content */}
-      <main className="flex-grow flex flex-col items-center justify-center px-4 md:px-24 py-12 bg-gray-800 text-white">
-        <section className="text-center mb-8 md:mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold">
-            Dive into the World of Anonymous Feedback
+      <Navbar />
+      <main className=" h-[70vh] md:h-[80vh] flex-grow flex flex-col items-center justify-center px-4 md:px-24 py-12 bg-gray-800 text-white">
+        <section className="text-center mb-8 md:mb-12 ">
+          <h1 className="text-4xl md:text-5xl font-thin">
+            Dive into the World of <span className="font-mono font-medium">Anonymous</span> Feedback
           </h1>
-          <p className="mt-3 md:mt-4 text-base md:text-lg">
+          <p className="mt-3 md:mt-4 text-base md:text-lg opacity-80">
             True Feedback - Where your identity remains a secret.
           </p>
         </section>
@@ -49,11 +55,10 @@ const page = () => {
         </Carousel>
       </main>
       {/* Footer */}
-      <footer className="text-center p-4 md:p-6 bg-gray-900 text-white">
-        © 2023 True Feedback. All rights reserved.
+      <footer className="text-center p-4 md:p-6 bg-gray-900 text-white fixed bottom-0 w-full">
+        © 2023 True Feedback. All rights reserved. Made with ❤️ by <a href="https://www.github.com/vaghmarelazy">Lazy</a>
       </footer>
-    </>
-  )
-}
-
-export default page
+    </div>
+  );
+};
+export default page;
