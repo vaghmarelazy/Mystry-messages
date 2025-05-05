@@ -56,7 +56,7 @@ const page = () => {
       </main>
       {/* Footer */}
       <footer className="text-center p-4 md:p-6 bg-gray-900 text-white fixed bottom-0 w-full">
-        © 2023 True Feedback. All rights reserved. Made with ❤️ by <a href="https://www.github.com/vaghmarelazy">Lazy</a>
+        © 2025 True Feedback. All rights reserved. Made with ❤️ by <a href="https://www.github.com/vaghmarelazy">Lazy</a>
       </footer>
     </div>
   );
