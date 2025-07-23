@@ -75,24 +75,8 @@ const page = () => {
       </section>
 
       {/* Footer */}
-      <footer className="text-center py-6 bg-black text-gray-400 w-full mt-auto animate-fade-in-up delay-300">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
-          <span>
-            © {new Date().getFullYear()} True Feedback. All rights reserved.
-          </span>
-          <span className="hidden md:inline">|</span>
-          <span>
-            Made with <span className="text-red-400">❤️</span> by{" "}
-            <a
-              href="https://www.github.com/vaghmarelazy"
-              className="underline hover:text-blue-400 transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Lazy
-            </a>
-          </span>
-        </div>
+      <footer className="text-center p-4 md:p-6 bg-gray-900 text-white fixed bottom-0 w-full">
+        © 2023 True Feedback. All rights reserved. Made with ❤️ by <a href="https://www.github.com/vaghmarelazy">Lazy</a>
       </footer>
       {/* Background image - set your image URL below */}
       <div
