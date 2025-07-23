@@ -38,7 +38,7 @@ function Page() {
     resolver: zodResolver(messageSchema),
   });
   const params = useParams<{ username: string }>();
-  const username = params.username;
+  const username = params.username; 
 
   const messageContent = form.watch("content");
 
@@ -71,7 +71,7 @@ function Page() {
         ...data,
         username,
       });
-      console.log(response)
+      // console.log(response)
       toast({
         title: response.data.message,
         description: "Your anonymous message has been sent to the recipient.",

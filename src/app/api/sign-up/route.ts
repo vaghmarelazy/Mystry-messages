@@ -15,20 +15,21 @@ export async function POST(request: Request) {
     });
     if (existingUserverifiedByUsername) {
       return Response.json(
-        {
+        { 
           success: false,
-          message: "Username already taken, try a differnt one",
+          message: "Username already taken, try a different one",
         },
         {
           status: 400,
         }
       );
     }
+    // Check for existing user by email
     const existingUserByEmail = await UserModel.findOne({
       email,
       isVerified: false,
     });
-    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verifyCode = Math.floor(1000 + Math.random() * 9000).toString();  
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
         await existingUserByEmail.save();
       }
     } else {
+      // Create new user
       const hashedPassword = await bcrypt.hash(password, 10);
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
@@ -64,9 +66,10 @@ export async function POST(request: Request) {
       });
 
       await newUser.save();
+      console.log("New user created: ", newUser)
     }
 
-    //Send Varification email
+    //Send Verification email
     const emailResponse = await sendVerificationEmail(
       email,
       username,

@@ -12,7 +12,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-function VerifyAccount() {
+function VerifyAccount() {  
   const router = useRouter();
   const params = useParams<{ username: string }>();
   const { toast } = useToast();
@@ -32,7 +32,7 @@ function VerifyAccount() {
       });
       router.replace("/sign-in");
     } catch (error) {
-      console.error("Error in sign-up User", error);
+      console.error("Error in verify User", error);
       const axiosError = error as AxiosError<ApiResponse>;
       const errorMessage = axiosError.response?.data.message;
       toast({

@@ -10,7 +10,6 @@ export const authOptions: NextAuthOptions = {
       id: "credentials",
       name: "Credentials",
       credentials: {
-        // email: { label: "Email", type: "text", placeholder: "Email" },
         identifier: {
           label: "Email/Username",
           type: "text",
@@ -18,11 +17,6 @@ export const authOptions: NextAuthOptions = {
         },
         password: { label: "Password", type: "password" },
       },
-      // async authorize(credentials: {
-      //   identifier: string;
-      //   password: string;
-      // }): Promise<User | null> {
-      //   await dbConnect();
       async authorize(
         credentials: Record<"identifier" | "password", string> | undefined
       ) {
@@ -35,9 +29,7 @@ export const authOptions: NextAuthOptions = {
               { username: credentials.identifier },
             ],
           }).lean();
-          // const plainUser = user?.toObject()
-          // const plainUser = {...user._doc}
-          // plainUser?.isVerified
+          console.log("User found: ", user)
           if (!user) {
             throw new Error("No User found with this email");
           }
@@ -50,11 +42,9 @@ export const authOptions: NextAuthOptions = {
           );
           if (isPasswordCurrect) {
             return {
-              id:user._id.toString(),
+              id: user._id.toString(),
               username: user.username,
               email: user.email,
-              verifyCode: user.verifyCode,
-              verifyCodeExpiry: user.verifyCodeExpiry,
               isVerified: user.isVerified,
               isAcceptingMessage: user.isAcceptingMessage,
               messages: user.messages,

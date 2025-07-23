@@ -16,7 +16,6 @@ export async function GET(request: Request) {
     };
     //validate with ZOd
     const result = UsernameQuerySchema.safeParse(queryParam);
-    console.log(result);
     if (!result.success) {
       const usernameErrors = result.error.format().username?._errors || [];
       return Response.json(
@@ -44,7 +43,7 @@ export async function GET(request: Request) {
           success: false,
           message: "Username already exist",
         },
-        { status: 400 }
+        { status: 200 }
       );
     }
     return Response.json(
@@ -52,7 +51,7 @@ export async function GET(request: Request) {
         success: true,
         message: "Username is unique",
       },
-      { status: 400 }
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error Checking username", error);

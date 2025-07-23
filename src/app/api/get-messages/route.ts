@@ -8,6 +8,8 @@ export async function GET() {
   await dbConnect();
   const session = await getServerSession(authOptions);
   const user: User = session?.user as User;
+  // console.log("user : get-messages.ts", user);
+  // console.log("session", session);
 
   if (!session || !session.user) {
     return Response.json(
@@ -19,11 +21,12 @@ export async function GET() {
     );
   }
 
-  const userId = user._id;
+  // const userId = user._id;
   try {
-    const user = await UserModel.findById(userId).select("messages").lean();
-    // console.log("user after the code", user);
-    if (!user) {
+    const fetchUser = await UserModel.find({username: user.username}).select("messages").lean();
+    // const user = await UserModel.findById(userId).select("messages").lean();
+    // console.log("user after the code", fetchUser[0].messages);
+    if (!fetchUser) {
       return Response.json(
         {
           success: false,
@@ -32,11 +35,11 @@ export async function GET() {
         { status: 500 }
       );
     }
-    if (user.messages.length > 0) {
+    if (fetchUser[0].messages.length > 0) {
       return Response.json(
         {
           success: true,
-          messages: user.messages,
+          messages: fetchUser[0].messages,
         },
         { status: 200 }
       );

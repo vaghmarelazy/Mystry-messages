@@ -2,7 +2,6 @@
 
 import MessageCard from "@/components/MessageCard";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Message } from "@/model/User";
@@ -11,7 +10,7 @@ import { ApiResponse } from "@/types/ApiResponse";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
 import { Loader2, RefreshCcw } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -19,9 +18,9 @@ function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [ProfileURL, setProfileURL] = useState("");
   const [username, setUsername] = useState("");
-  // const [isAcceptingMessages, setIsAcceptingMessages] = useState(false);
   const { toast } = useToast();
   const { data: session, status } = useSession({
     required: true,
@@ -52,7 +51,7 @@ function Page() {
   const handleDeleteMessage = useCallback(async (messageId: string) => {
     try {
        const response = await axios.delete<ApiResponse>(`/api/delete-message/${messageId}`);
-       console.log(response.data)
+       console.log("response: dashboard.tsx", response.data)
       setMessages((prevMessages) =>
         prevMessages.filter((message) => message._id !== messageId)
       );
@@ -71,7 +70,7 @@ function Page() {
     try {
       const response = await axios.get<ApiResponse>(`/api/accept-messages`);
       // const result: boolean = response.data.isAcceptingMessages
-      // console.log("Fecthing acceptMessages", response.data);
+      // console.log("Fecthing acceptMessages", response.data); 
       setValue("acceptMessages", response.data.isAcceptingMessages);
     } catch (error) {
       handleError(error);
@@ -80,54 +79,14 @@ function Page() {
     }
   }, [setValue, handleError]);
 
-  // const fetchMessages = useCallback(
-  //   async (refresh: boolean = false) => {
-  //     setIsLoading(true);
-  //     try {
-  //       const response = await axios.get<ApiResponse>(`/api/get-messages`);
-
-  //       const messages = [];
-  //       response.data.messages.forEach((message) => {
-  //         messages.push(message.content);
-  //       });
-
-  //       console.log(messages);
-
-  //       // Log each message object properly
-  //       // fetchedMessages.forEach((message) => {
-  //       //   console.log("Message:", message);
-  //       // });
-
-  //       // Set messages correctly
-  //       setMessages(messages);
-  //       if (refresh) {
-  //         toast({
-  //           title: "Messages refreshed",
-  //           description: "Messages fetched successfully",
-  //         });
-  //       }
-  //     } catch (error) {
-  //       handleError(error);
-  //       console.log("Gettings error in getMessages", error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [toast, handleError]
-  // );
-
   const fetchMessages = useCallback(
     async (refresh: boolean = false) => {
       setIsLoading(true);
       try {
-        const response = await axios.get<ApiResponse>(`/api/get-messages`);
+        const response = await axios.get<ApiResponse>("/api/get-messages");
 
         // Ensure messages are properly set as an array of objects
         const fetchedMessages: Message[] = response.data.messages || [];
-
-        console.log("Fetched messages:", fetchedMessages.forEach((messages)=>{
-          console.log(messages.content)
-        }));
 
         // Set messages correctly
         setMessages(fetchedMessages);
@@ -148,14 +107,17 @@ function Page() {
     [toast, handleError]
   );
 
+  // Merged useEffect for session, username, and profile URL
   useEffect(() => {
     if (!session || !session.user) return;
-    setUsername(String(session?.user.username));
-    // setIsAcceptingMessages(Boolean(session.user.isAcceptingMessage));
+
+    const username = String(session.user.username);
+    setUsername(username);
     setProfileURL(`${window.location.origin}/u/${username}`);
+
     fetchMessages();
     fetchAcceptMessage();
-  }, [session, setValue, fetchAcceptMessage, fetchMessages, username]);
+  }, [session, setValue, fetchAcceptMessage, fetchMessages]);
 
   if (status === "loading") {
     return (
@@ -178,7 +140,7 @@ function Page() {
       const response = await axios.post<ApiResponse>("/api/accept-messages", {
         acceptMessages: !acceptMessages,
       });
-      console.log(response);
+      // console.log("response: dashboard.tsx", response);
       setValue("acceptMessages", !acceptMessages);
       toast({
         title: "Success",
@@ -198,57 +160,80 @@ function Page() {
   };
   const copyToClipboard = () => {
     navigator.clipboard.writeText(ProfileURL);
+    setIsCopied(true);
     toast({
       title: "Link Copied",
       description: "Your unique profile link has been copied to your clipboard",
+      duration: 5000,
+      variant: "default",
     });
   };
 
+  // --- New Modern Dashboard Layout ---
   return (
-    <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
-      <h1 className="text-4xl font-bold mb-4">User Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-8 px-2 md:px-8">
+      {/* Header */}
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Welcome, {username || 'User'}!</h1>
+          <p className="text-slate-600 mt-1 text-base">Manage your anonymous messages and profile settings below.</p>
+        </div>
+        <Button onClick={() => signOut()} className="bg-slate-800 text-white hover:bg-slate-950 hover:text-white" variant="outline">Logout</Button>
+      </div>
 
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Copy Your Unique Link</h2>{" "}
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={ProfileURL}
-            disabled
-            className="input input-bordered w-full p-2 mr-2"
-          />
-          <Button onClick={copyToClipboard}>Copy</Button>
+      {/* Profile Link Card */}
+      <div className="max-w-5xl mx-auto mb-6">
+        <div className="bg-white rounded-lg shadow items-end p-4 flex md:flex-row md:items-end gap-3 border border-slate-200">
+          <div className="flex-1">
+            <h2 className="font-semibold text-lg text-slate-800 mb-1">Your Profile Link</h2>
+            <input
+              type="text"
+              value={ProfileURL}
+              disabled
+              className="w-full bg-slate-100 rounded px-3 py-2 font-mono text-slate-700 border border-slate-200 focus:outline-none focus:ring-0"
+            />
+          </div>
+          <Button onClick={copyToClipboard} className="mt-2 md:mt-0">
+            {isCopied ? "Copied" : "Copy Link"}
+          </Button>
         </div>
       </div>
 
-      <div className="mb-4">
-        <Switch
-          // {...register("acceptMessages")}
-          checked={acceptMessages}
-          onCheckedChange={handleSwitchChange}
-          disabled={isSwitchLoading}
-        />
-        <span className="ml-2">
-          Accept Messages: {acceptMessages ? "On" : "Off"}
-        </span>
+      {/* Accept Messages Switch Card */}
+      <div className="max-w-5xl mx-auto mb-6">
+        <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 border border-slate-200">
+          <Switch
+            checked={acceptMessages}
+            onCheckedChange={handleSwitchChange}
+            disabled={isSwitchLoading}
+          />
+          <span className="text-slate-800 font-medium">
+            Accept Messages: <span className={acceptMessages ? 'text-green-600' : 'text-red-500'}>{acceptMessages ? 'On' : 'Off'}</span>
+          </span>
+        </div>
       </div>
-      <Separator />
 
-      <Button
-        className="mt-4"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          fetchMessages(true);
-        }}
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCcw className="h-4 w-4" />
-        )}
-      </Button>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Refresh Button */}
+      <div className="max-w-5xl mx-auto flex justify-end mb-4">
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            fetchMessages(true);
+          }}
+          className="flex items-center gap-2"
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCcw className="h-4 w-4" />
+          )}
+          <span>Refresh</span>
+        </Button>
+      </div>
+
+      {/* Messages Grid */}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {messages.length > 0 ? (
           messages.map((message: Message) => (
             <MessageCard
@@ -258,7 +243,7 @@ function Page() {
             />
           ))
         ) : (
-          <p>No messages to display.</p>
+          <div className="col-span-full text-center text-slate-500 py-12 text-lg">No messages to display.</div>
         )}
       </div>
     </div>

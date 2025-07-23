@@ -16,7 +16,7 @@ A **full-stack** anonymous messaging platform where users can send and receive m
 - **Authentication:** Resend for email verification  
 - **AI Features:** Gemini AI for message suggestions  
 
-## 🛠 Installation  
+## 🛠 Installation 
 
 1. **Clone the repository**  
    ```bash
@@ -59,4 +59,4 @@ A **full-stack** anonymous messaging platform where users can send and receive m
 Contributions are welcome! Open an issue or submit a pull request.  
 
 ## 📜 License  
-MIT License – Feel free to use and modify this project.  
+MIT License – Feel free to use and modify this project.

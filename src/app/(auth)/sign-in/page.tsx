@@ -31,6 +31,7 @@ function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+
     setIsSubmitting(true);
     const result = await signIn('credentials', {
       redirect: false,
@@ -59,7 +60,7 @@ function Page() {
       return;
     }
     if (result?.url) {
-      router.replace('/dashboard');
+      router.push('/dashboard');
     }
   };
   useEffect(() => {
@@ -81,9 +82,9 @@ function Page() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email / Username</FormLabel>
+                  <FormLabel>Email or Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email / Username" {...field} />
+                    <Input placeholder="Email or Username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -116,7 +117,7 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Don&apos;t have an account?{' '}
-            <Link href='/sign-up' className="text-blue-600 hover:text-blue-800">Sign up</Link>
+            <Link href='/sign-up' className="text-blue-600 hover:text-blue-800">Join Now</Link>
           </p>
         </div>
       </div>

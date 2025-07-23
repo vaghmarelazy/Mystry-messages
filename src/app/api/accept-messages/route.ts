@@ -18,17 +18,48 @@ export async function POST(request: Request) {
       { status: 401 }
     );
   }
-  const userId = user._id;
   const { acceptMessages } = await request.json();
-
   try {
-    const updateUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { isAcceptingMessage: acceptMessages },
-      { new: true }
-    );
-
-    if (!updateUser) {
+    const foundUser = await UserModel.find({username: user.username}).select("_id").lean();
+    const userId = foundUser[0]._id.toString();
+    // console.log("userId : AM : Post", userId)
+    // console.log("foundUser : AM : Post", foundUser[0]._id.toString())
+    if (!foundUser) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        { status: 404 }
+      );
+    }
+    // const userId = foundUser[0]._id.toString();
+    try {
+      const updateUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { isAcceptingMessage: acceptMessages },
+        { new: true }
+      );
+  
+      if (!updateUser) {
+        return Response.json(
+          {
+            success: false,
+            message: "Failed to update user status to accept messages",
+          },
+          { status: 401 }
+        );
+      }
+      return Response.json(
+        {
+          success: true,
+          message: "Message acceptance was successfully updated",
+          updateUser,
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      console.log("Failed to update user status to accept messages", error);
       return Response.json(
         {
           success: false,
@@ -37,22 +68,14 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
-    return Response.json(
-      {
-        success: true,
-        message: "Message acceptance was successfully updated",
-        updateUser,
-      },
-      { status: 200 }
-    );
   } catch (error) {
-    console.log("Failed to update user status to accept messages", error);
+    console.log("Error in accept messages : AM : Post", error);
     return Response.json(
       {
         success: false,
-        message: "Failed to update user status to accept messages",
+        message: "Error in accept messages",
       },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }
@@ -72,11 +95,13 @@ export async function GET() {
     );
   }
 
-  const userId = user._id;
   try {
-    const foundUser = await UserModel.findById(userId);
+    const foundUser = await UserModel.find({username: user.username}).select("isAcceptingMessage").lean();
+    const userId = foundUser[0]._id.toString();
+    console.log("userId : AM : Get", userId)
 
     if (!foundUser) {
+      // console.log("User not found");
       return Response.json(
         {
           success: false,
@@ -89,7 +114,7 @@ export async function GET() {
     return Response.json(
       {
         success: true,
-        isAcceptingMessages: foundUser.isAcceptingMessage,
+        isAcceptingMessages: foundUser[0].isAcceptingMessage,
       },
       { status: 200 }
     );
