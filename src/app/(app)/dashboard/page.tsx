@@ -53,6 +53,7 @@ function Page() {
        const response = await axios.delete<ApiResponse>(`/api/delete-message/${messageId}`);
        console.log("response: dashboard.tsx", response.data)
       setMessages((prevMessages) =>
+        
         prevMessages.filter((message) => message._id !== messageId)
       );
       toast({
@@ -104,7 +105,7 @@ function Page() {
         setIsLoading(false);
       }
     },
-    [toast, handleError]
+    [toast, handleError, setMessages] 
   );
 
   // Merged useEffect for session, username, and profile URL
@@ -158,6 +159,7 @@ function Page() {
       });
     }
   };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(ProfileURL);
     setIsCopied(true);

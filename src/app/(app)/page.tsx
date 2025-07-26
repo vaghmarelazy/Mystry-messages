@@ -75,7 +75,7 @@ const page = () => {
       </section>
 
       {/* Footer */}
-      <footer className="text-center p-4 md:p-6 bg-gray-900 text-white fixed bottom-0 w-full">
+      <footer className="text-center p-4 md:p-6 bg text-white  bottom-0 w-full">
         © 2023 True Feedback. All rights reserved. Made with ❤️ by <a href="https://www.github.com/vaghmarelazy">Lazy</a>
       </footer>
       {/* Background image - set your image URL below */}

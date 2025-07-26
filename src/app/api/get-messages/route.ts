@@ -24,8 +24,6 @@ export async function GET() {
   // const userId = user._id;
   try {
     const fetchUser = await UserModel.find({username: user.username}).select("messages").lean();
-    // const user = await UserModel.findById(userId).select("messages").lean();
-    // console.log("user after the code", fetchUser[0].messages);
     if (!fetchUser) {
       return Response.json(
         {
