@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 
@@ -30,9 +30,15 @@ function Page() {
   const [isCheckingUsername, setISCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [usernameUniqque, setUsernameUniqque] = useState(false);
+  const [emailUnique, setEmailUnique] = useState(false);
+  const debouncedEmail = useDebounce(email, 300);
+  const debounceUsername = useDebounce(username, 300);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const debounceUsername = useDebounce(username, 300);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -44,6 +50,9 @@ function Page() {
 
   useEffect(() => {
     document.title = "Sign Up";
+  }, []);
+
+  useEffect(() => {
     const checkUsernameUnique = async () => {
       if (debounceUsername) {
         setISCheckingUsername(true);
@@ -56,6 +65,7 @@ function Page() {
           console.log("response: sign-up.tsx", response.data.message);
 
           setUsernameMessage(response.data.message);
+          setUsernameUniqque(response.data.success);
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse>;
           setUsernameMessage(
@@ -67,8 +77,31 @@ function Page() {
       }
     };
 
+    const checkEmailUnique = async () => {
+      if (debouncedEmail) {
+        setIsCheckingEmail(true);
+        setEmailMessage("");
+        try {
+          const response = await axios.get(
+            `/api/check-email-unique?email=${debouncedEmail}`
+          );
+          setEmailMessage(response.data.message);
+
+          setEmailUnique(response.data.success);
+        } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>;
+          setEmailMessage(
+            axiosError.response?.data.message || "Error checking email"
+          );
+        } finally {
+          setIsCheckingEmail(false);
+        }
+      }
+    };
+
+    checkEmailUnique();
     checkUsernameUnique();
-  }, [debounceUsername]);
+  }, [debounceUsername, debouncedEmail]);
 
   // Focus the first OTP input when OTP form is shown
   useEffect(() => {
@@ -87,7 +120,10 @@ function Page() {
     }
   };
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleOtpKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       setOtp((prev) => {
         const newOtp = [...prev];
@@ -105,7 +141,10 @@ function Page() {
   };
 
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = e.clipboardData.getData("Text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("Text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (pasted.length === 6) {
       setOtp(pasted.split(""));
       pasted.split("").forEach((digit, idx) => {
@@ -131,15 +170,16 @@ function Page() {
       if (result.data.success) {
         // After successful verification, attempt to sign in
         const signInResult = await signIn("credentials", {
-          identifier: username,  // Using username as identifier
-          password: form.getValues("password"),  // Get password from the form
-          redirect: false,  // Don't redirect automatically
+          identifier: username, // Using username as identifier
+          password: form.getValues("password"), // Get password from the form
+          redirect: false, // Don't redirect automatically
         });
 
         if (signInResult?.error) {
           toast({
             title: "Error",
-            description: "Failed to sign in automatically. Please sign in manually.",
+            description:
+              "Failed to sign in automatically. Please sign in manually.",
             duration: 5000,
             variant: "destructive",
           });
@@ -188,7 +228,7 @@ function Page() {
         title: "Error",
         description: errorMessage || "Error in sign-up user",
         duration: 5000,
-        variant: "destructive", 
+        variant: "destructive",
       });
       setIsSubmitting(false);
     }
@@ -207,7 +247,10 @@ function Page() {
             <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
               Join Mystry Messsage
             </h1>
-            <p className="mb-4">Sign-up to start your <span className="font-mono">anonymous</span> adventure</p>
+            <p className="mb-4">
+              Sign-up to start your <span className="font-mono">anonymous</span>{" "}
+              adventure
+            </p>
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -218,17 +261,27 @@ function Page() {
                   <FormItem>
                     <div className="flex justify-between">
                       <FormLabel>Username</FormLabel>
-                      {isCheckingUsername && <Loader2 className="animate-spin" />}
+                      {isCheckingUsername && (
+                        <Loader2 className="animate-spin" />
+                      )}
                     </div>
                     <FormControl>
-                      <Input
-                        placeholder="Username"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          setUsername(e.target.value);
-                        }}
-                      />
+                      <div className="relative flex items-center">
+                        <Input
+                          placeholder="Username"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setUsername(e.target.value);
+                          }}
+                        />
+                        {usernameUniqque && (
+                          <Check
+                            color="green"
+                            className="w-5 h-5 absolute right-1 to"
+                          />
+                        )}
+                      </div>
                     </FormControl>
                     <p
                       className={`text-sm ${usernameMessage === "Username is unique" ? "text-green-500" : "text-red-500"}`}
@@ -244,10 +297,44 @@ function Page() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <div className="flex justify-between">
+                      <FormLabel>Email</FormLabel>
+                      {isCheckingEmail && <Loader2 className="animate-spin" />}
+                    </div>
                     <FormControl>
-                      <Input placeholder="Email" {...field} />
+                      <div className="relative flex items-center">
+                        <Input
+                          placeholder="Email"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setEmail(e.target.value);
+                          }}
+                        />
+                        {emailUnique && (
+                          <Check
+                            color="green"
+                            className="w-5 h-5 absolute right-1 to"
+                          />
+                        )}
+                      </div>
                     </FormControl>
+                    {!emailUnique && (
+                      <span className="text-sm text-red-600">
+                        {emailMessage}{" "}
+                      </span>
+                    )}
+                    {emailMessage ===
+                    "Email already exists but not verified" ? (
+                      <a
+                        href={`/verify-email?email=${encodeURIComponent(email)}`}
+                        className="text-blue-600 underline ml-2"
+                      >
+                        Click here to verify
+                      </a>
+                    ) : (
+                      ""
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -272,7 +359,8 @@ function Page() {
               <Button type="submit" aria-disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please
+                    wait
                   </>
                 ) : (
                   "Sign Up"
@@ -305,7 +393,10 @@ function Page() {
                 <h2 className="text-2xl font-bold mb-4">Verify OTP</h2>
                 <p className="mb-4">Please enter the OTP sent to your email.</p>
               </div>
-              <form className="space-y-6 text-center" onSubmit={handleOtpSubmit}>
+              <form
+                className="space-y-6 text-center"
+                onSubmit={handleOtpSubmit}
+              >
                 <div className="flex justify-center gap-2">
                   {otp.map((digit, idx) => (
                     <Input
@@ -328,7 +419,19 @@ function Page() {
                     />
                   ))}
                 </div>
-                <Button type="submit" className="">Verify OTP</Button>
+                <Button
+                  type="submit"
+                  disabled={otp.some((digit) => digit === "") || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify OTP"
+                  )}
+                </Button>
               </form>
             </div>
           )}

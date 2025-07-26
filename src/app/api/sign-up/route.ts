@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     const verifyCode = Math.floor(1000 + Math.random() * 9000).toString();  
 
     if (existingUserByEmail) {
+      console.log("User already exist with this email")
       if (existingUserByEmail.isVerified) {
         return Response.json(
           {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       } else {
+        console.log("Updating existing user")
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
@@ -50,6 +52,7 @@ export async function POST(request: Request) {
       }
     } else {
       // Create new user
+      console.log("Creating new user")
       const hashedPassword = await bcrypt.hash(password, 10);
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);

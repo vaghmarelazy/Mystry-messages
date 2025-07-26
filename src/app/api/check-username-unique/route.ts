@@ -43,7 +43,7 @@ export async function GET(request: Request) {
           success: false,
           message: "Username already exist",
         },
-        { status: 200 }
+        { status: 400 }
       );
     }
     return Response.json(

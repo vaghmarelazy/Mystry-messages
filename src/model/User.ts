@@ -27,6 +27,7 @@ export interface User extends Document {
   isVerified: boolean;
   isAcceptingMessage: boolean;
   messages: Message[];
+  createdAt: Date;
 }
 
 const UserSchema: Schema<User> = new Schema({
@@ -64,8 +65,19 @@ const UserSchema: Schema<User> = new Schema({
     default: true,
     required: true,
   },
-  messages: [MessageSchema]
+  messages: [MessageSchema],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
 });
+
+// TTL index for unverified users: delete after 30 minutes
+UserSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 1800, partialFilterExpression: { isVerified: false } }
+);
 
 const UserModel = (mongoose.models.User as mongoose.Model<User>)||(mongoose.model<User>("User", UserSchema));
 
