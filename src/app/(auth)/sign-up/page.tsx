@@ -35,8 +35,8 @@ function Page() {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [usernameUniqque, setUsernameUniqque] = useState(false);
   const [emailUnique, setEmailUnique] = useState(false);
-  const debouncedEmail = useDebounce(email, 300);
-  const debounceUsername = useDebounce(username, 300);
+  const debouncedEmail = useDebounce(email, 1500);
+  const debounceUsername = useDebounce(username, 1500);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { toast } = useToast();
@@ -86,6 +86,7 @@ function Page() {
             `/api/check-email-unique?email=${debouncedEmail}`
           );
           setEmailMessage(response.data.message);
+          // console.log(response.data.success)
 
           setEmailUnique(response.data.success);
         } catch (error) {

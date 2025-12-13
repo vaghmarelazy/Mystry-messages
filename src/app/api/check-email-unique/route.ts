@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     });
 
     if (existingVerifiedUser) {
-      console.log("Existing verified user", existingVerifiedUser)
+      console.log("Existing verified user (foud while checking unique email)", existingVerifiedUser)
       return Response.json(
         {
           success: false,
