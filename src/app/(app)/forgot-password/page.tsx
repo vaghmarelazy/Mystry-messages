@@ -2,6 +2,7 @@
 
 import { toast } from "@/hooks/use-toast";
 import { ApiResponse } from "@/types/ApiResponse";
+import { resetPasswordResponse } from "@/types/resetPasswordResponse";
 import axios, { AxiosError } from "axios";
 import { useState } from "react";
 
@@ -24,7 +25,7 @@ export default function Page() {
       setIsSubmitting(false);
     }
     try {
-      const result = await axios.post<ApiResponse>("/api/forgot-password", {
+      const result = await axios.post<resetPasswordResponse>("/api/forgot-password", {
         email,
       });
       // console.log(result)
