@@ -1,14 +1,10 @@
-// import { resend } from "@/lib/resend";
-// import VerficationEmail from "../../emails/VerificationEmail";
 import { ApiResponse } from "@/types/ApiResponse";
 import nodemailer from "nodemailer";
 
-export async function sendVerificationEmail(
+export async function sendResetPasswordEmail(
   email: string,
-  username: string,
   verifyCode: string
 ): Promise<ApiResponse> {
-
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -20,15 +16,15 @@ export async function sendVerificationEmail(
   const mailOptions = {
     from: `${process.env.USER}`,
     to: email,
-    subject: "Your OTP Code for Mystry Messages",
-    text: `Hi ${username}, Your OTP Code is: ${verifyCode}`,
+    subject: "Reset Password of your Mysty Messages Account",
+    text: `Here is your OTP to reset Password: ${verifyCode} if it's not You then Please Ignore..`,
   };
   try {
     await transporter.sendMail(mailOptions);
     // console.log("Email sent successfully", verifyCode);
-    return { success: true, message: "verification email send successfully" };
+    return { success: true, message: "Email sent to Reset Password.." };
   } catch (emailError) {
-    console.log("Error sending verification email", emailError);
-    return { success: false, message: "failed to send verification email" };
+    console.log("Error sending email", emailError);
+    return { success: false, message: "failed to send email" };
   }
 }

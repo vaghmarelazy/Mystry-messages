@@ -1,7 +1,14 @@
-'use client'
+"use client";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { signInSchema } from "@/schemas/signInSchema";
@@ -12,9 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from 'zod'
-
-
+import * as z from "zod";
 
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,16 +36,15 @@ function Page() {
   });
 
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-
     setIsSubmitting(true);
-    const result = await signIn('credentials', {
+    const result = await signIn("credentials", {
       redirect: false,
       identifier: data.identifier,
       password: data.password,
     });
-    console.log(result)
+    console.log(result);
 
-    if(result?.error ==='incorrect password'){
+    if (result?.error === "incorrect password") {
       toast({
         title: "Login Error",
         description: "Incorrect password",
@@ -60,11 +64,11 @@ function Page() {
       return;
     }
     if (result?.url) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   };
   useEffect(() => {
-    document.title = "Sign-In"
+    document.title = "Sign-In";
   }, []);
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -77,7 +81,7 @@ function Page() {
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
+            <FormField
               name="identifier"
               control={form.control}
               render={({ field }) => (
@@ -103,25 +107,31 @@ function Page() {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
+            <div>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please
+                    wait
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+              <Link href="/forgot-password" className="underline text-sm opacity-90 ml-5 hover:opacity-100 transition-all duration-200">Forgot Password</Link>
+            </div>
           </form>
         </Form>
         <div className="text-center mt-4">
           <p>
-            Don&apos;t have an account?{' '}
-            <Link href='/sign-up' className="text-blue-600 hover:text-blue-800">Join Now</Link>
+            Don&apos;t have an account?{" "}
+            <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
+              Join Now
+            </Link>
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 export default Page;
