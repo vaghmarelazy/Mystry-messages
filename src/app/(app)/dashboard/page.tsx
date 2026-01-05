@@ -50,7 +50,8 @@ function Page() {
 
   const handleDeleteMessage = useCallback(async (messageId: string) => {
     try {
-       const response = await axios.delete<ApiResponse>(`/api/delete-message/${messageId}`);
+      //  const response = 
+       await axios.delete<ApiResponse>(`/api/delete-message/${messageId}`);
       //  console.log("response: dashboard.tsx", response.data)
       setMessages((prevMessages) =>
         
