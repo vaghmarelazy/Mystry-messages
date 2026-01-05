@@ -33,9 +33,21 @@ export async function POST(req: Request) {
     {
       success: true,
       message: "User Authenticated",
+      email: user.email,
     },
     {
       status: 200,
+    }
+  );
+}
+export async function GET() {
+  return Response.json(
+    {
+      success: false,
+      message: "Method Not Allowed",
+    },
+    {
+      status: 405,
     }
   );
 }

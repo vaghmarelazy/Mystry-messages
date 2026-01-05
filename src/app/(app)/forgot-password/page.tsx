@@ -41,7 +41,7 @@ export default function Page() {
           email,
         }
       );
-      console.log(result.data.verifyCode)
+      // console.log(result.data.verifyCode)
       if (result) {
         toast({
           title: "Success",
@@ -52,7 +52,7 @@ export default function Page() {
         setToken(result.data.resetToken)
         setOtpSent(true);
       }
-      console.log(result.data.message);
+      // console.log(result.data.message);
       setIsSubmitting(false);
     } catch (error) {
       console.error("Internal server Error", error);
@@ -72,13 +72,13 @@ export default function Page() {
   async function verifyOTP(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log("VerifyOTP triggered");
+    // console.log("VerifyOTP triggered");
     const otp = e.currentTarget.otp.value;
-    console.log(otp);
+    // console.log(otp);
     try {
       if (otp.toString() === OTP) {
         setIsverified(true);
-        console.log("Redirected", token);
+        // console.log("Redirected", token);
         router.push(`/set-new-password?token=${token}`);
       } else {
         toast({

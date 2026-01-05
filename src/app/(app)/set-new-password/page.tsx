@@ -12,6 +12,7 @@ export default function Page() {
   const [showNewpassword, setShowNewpassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,46 +35,66 @@ export default function Page() {
     }
 
     // Here you would typically send the new password to your API
-    console.log("New password submitted:", newPassword);
+    // console.log("New password submitted:", newPassword);
+    const result = await axios.post("/api/set-new-password", {
+      token,
+      newPassword,
+    });
+    if (!result.data.success) {
+      toast({
+        title: "Error",
+        description: result.data.message,
+        duration: 5000,
+        variant: "destructive",
+      });
+    }
+    toast({
+      title: result.data.message,
+      description: "Redirecting to Log-In Page..",
+      duration: 5000,
+      variant: "default",
+    });
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
+    router.replace("/sign-in");
 
     setIsSubmitting(false);
-    alert("Password updated successfully!");
-  }
-
-  //Getting error in this
-  async function isAuthenticated() {
-    try {
-      const token = searchParams.get("token");
-
-      if (!token) {
-        router.push("/sign-up");
-        return;
-      }
-
-      const response = await axios.post<verificationResponse>(
-        "/api/verify-reset-token",
-        { token }
-      );
-      console.log(response);
-
-      if (!response.data.success) {
-        router.push("/sign-up");
-      }
-    } catch (error) {
-      console.error("Authentication Error", error);
-      router.push("/sign-in");
-    } finally {
-      setPageLoading(false);
-    }
+    // alert("Password updated successfully!");
   }
 
   useEffect(() => {
-    setPageLoading(true);
+    async function isAuthenticated() {
+      setPageLoading(true);
+      try {
+        const token = searchParams.get("token")
+        setToken(token);
+
+        if (!token) {
+          router.push("/sign-up");
+          // console.log("Token error")
+          return;
+        }
+
+        const response = await axios.post<verificationResponse>(
+          "/api/verify-reset-token",
+          { token }
+        );
+        // console.log(response);
+
+        if (!response.data.success) {
+          router.push("/sign-up");
+        }
+      } catch (error) {
+        console.error("Authentication Error", error);
+        router.push("/sign-in");
+      } finally {
+        setPageLoading(false);
+      }
+    }
+
     isAuthenticated();
-  }, [searchParams]);
+  }, [searchParams, router, token]);
   if (pageLoading) {
     return (
       <Suspense>
