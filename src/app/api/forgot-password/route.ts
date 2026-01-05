@@ -1,6 +1,7 @@
 import { sendResetPasswordEmail } from "@/helpers/sendResetPasswordEmail";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   await dbConnect();
@@ -11,7 +12,7 @@ export async function POST(req: Request) {
     email,
   });
   if (!existingUserByEmail) {
-    console.log("User does not exist!!")
+    console.log("User does not exist!!");
     return Response.json(
       {
         success: false,
@@ -21,13 +22,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const verifyCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  existingUserByEmail.resetPasswordToken = resetToken;
+  existingUserByEmail.resetPasswordTokenExpiry = new Date(
+    Date.now() + 5 * 60 * 1000
+  );
+
+  existingUserByEmail.save();
   try {
     //Send Verification email
-    const emailResponse = await sendResetPasswordEmail(
-      email,
-      verifyCode
-    );
+    const emailResponse = await sendResetPasswordEmail(email, verifyCode);
     if (!emailResponse.success) {
       return Response.json(
         {
@@ -42,11 +48,12 @@ export async function POST(req: Request) {
         success: true,
         message: "OTP sent to your registered Email..",
         verifyCode,
+        resetToken,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("error sending Email", error)
+    console.error("error sending Email", error);
     return Response.json(
       {
         success: false,
@@ -56,5 +63,4 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   }
-  
 }

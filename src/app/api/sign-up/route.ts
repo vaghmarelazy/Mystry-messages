@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       });
 
       await newUser.save();
-      console.log("New user created: ", newUser)
+      // console.log("New user created: ", newUser)
     }
 
     //Send Verification email

@@ -28,6 +28,8 @@ export interface User extends Document {
   isAcceptingMessage: boolean;
   messages: Message[];
   createdAt: Date;
+  resetPasswordToken:string;
+  resetPasswordTokenExpiry:Date;
 }
 
 const UserSchema: Schema<User> = new Schema({
@@ -56,12 +58,12 @@ const UserSchema: Schema<User> = new Schema({
     required: [true, "verify code expiry is required"],
   },
   isVerified: {
-    type : Boolean,
+    type: Boolean,
     default: false,
     required: true,
   },
   isAcceptingMessage: {
-    type : Boolean,
+    type: Boolean,
     default: true,
     required: true,
   },
@@ -71,6 +73,14 @@ const UserSchema: Schema<User> = new Schema({
     default: Date.now,
     required: true,
   },
+  resetPasswordToken: {
+    type: String,
+    required: false,
+  },
+  resetPasswordTokenExpiry: {
+    type: Date,
+    required: false,
+  },
 });
 
 // TTL index for unverified users: delete after 30 minutes
@@ -79,6 +89,8 @@ UserSchema.index(
   { expireAfterSeconds: 1800, partialFilterExpression: { isVerified: false } }
 );
 
-const UserModel = (mongoose.models.User as mongoose.Model<User>)||(mongoose.model<User>("User", UserSchema));
+const UserModel =
+  (mongoose.models.User as mongoose.Model<User>) ||
+  mongoose.model<User>("User", UserSchema);
 
 export default UserModel;
