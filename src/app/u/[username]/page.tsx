@@ -38,7 +38,7 @@ function Page() {
     resolver: zodResolver(messageSchema),
   });
   const params = useParams<{ username: string }>();
-  const username = params.username; 
+  const username = params.username;
 
   const messageContent = form.watch("content");
 
@@ -49,9 +49,8 @@ function Page() {
   const fetchSuggestedMessages = async () => {
     setIsSuggestLoading(true);
     try {
-      const response = await axios.post(
-        `${window.location.origin}/api/suggest-messages`
-      );
+      const response = await axios.post(`/api/suggest-messages`);
+      if (!response) console.log("Response error");
       // const questions = parseStringMessages(response.data.questions)
       const questions = response.data.questions;
       setMessages(questions);
@@ -67,10 +66,13 @@ function Page() {
   async function onSubmit(data: z.infer<typeof messageSchema>) {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${window.location.origin}/api/send-message`, {
-        ...data,
-        username,
-      });
+      const response = await axios.post(
+        `${window.location.origin}/api/send-message`,
+        {
+          ...data,
+          username,
+        }
+      );
       // console.log(response)
       toast({
         title: response.data.message,
@@ -185,10 +187,10 @@ function Page() {
                 <Button
                   key={index}
                   variant="outline"
-                  className="mb-2"
+                  className="mb-2 w-auto hover:shadow-sm hover:shadow-gray-800 hover:scale-105 transition-all duration-75"
                   onClick={() => handleMessageClick(message)}
                 >
-                  {message}
+                  <p>{message}</p>
                 </Button>
               ))
             )}
